@@ -1,5 +1,15 @@
 # [22 - Admirer](https://app.hackthebox.com/machines/Admirer)
 
+  * [description](#description)
+  * [walkthrough](#walkthrough)
+    * [recon](#recon)
+    * [80](#80)
+    * [21](#21)
+    * [trying ssh credentials](#trying-ssh-credentials)
+    * [back to admin_tasks.php](#back-to-admin_tasks.php)
+    * [adminer.php](#adminer.php)
+    * [waldo up](#waldo-up)
+  * [flag](#flag)
 ![Admirer.png](Admirer.png)
 
 ## description
