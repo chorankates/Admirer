@@ -335,6 +335,32 @@ ok so not those, but
   ?>
 ```
 
+so it feels like RCE via `admin_tasks.php`, but we only have one injection point, `$task`, which is only passed as an argument if it is `1..7`. null bytes? solved in php 5.0.3 and we're on 7.0.33
+
+
+### trying ssh credentials
+
+```
+$ ssh -l ftpuser admirer.htb
+Warning: Permanently added 'admirer.htb' (ED25519) to the list of known hosts.
+ftpuser@admirer.htb's password:
+Linux admirer 4.9.0-12-amd64 x86_64 GNU/Linux
+
+The programs included with the Devuan GNU/Linux system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Devuan GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+Connection to admirer.htb closed.
+```
+
+so it's letting us log in, but then immediately killing the session. can't execute commands
+
+tried a variety of auths with users from contacts.txt and passwords from credentials.txt, but nothing sticking.
+
+
+
 
 ## flag
 
