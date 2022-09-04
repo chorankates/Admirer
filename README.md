@@ -367,11 +367,22 @@ $ diff credentials.txt html/w4ld0s_s3cr3t_d1r/credentials.txt
 > waldo.11
 > Ezy]m27}OREc$
 >
+```
 
 but that is not the ssh password for `waldo` either..
 
-penny, leonard, howard and benadette are all characters on that god awful show "the big bang theory" - is waldo a reference there too?
+more digging in the contents, see that `index.php` actually has `db_admin.php` (effectively) inlined, but the creds are different:
+```
+		 <?php
+                        $servername = "localhost";
+                        $username = "waldo";
+                        $password = "]F7jLHw:*G>UPrTo}~A"d6b";
+                        $dbname = "admirerdb";
+```
 
+but still no love on ssh
+
+penny, leonard, howard and bernadette are all characters on that god awful show "the big bang theory" - is waldo a reference there too?
 ```
 
 
