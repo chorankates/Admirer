@@ -126,6 +126,39 @@ ftp: Login failed
 
 hrm. msfconsole shows an exploit for vsftpd 2.3.4, and exploitdb only shows a DoS for 3.0.3
 
+```
+$ ftp admirer.htb 
+Connected to admirer.htb.
+220 (vsFTPd 3.0.3)
+Name (admirer.htb:conor): ftpuser             
+331 Please specify the password.
+Password: 
+230 Login successful.
+Remote system type is UNIX.
+Using binary mode to transfer files.
+ftp> ls
+229 Entering Extended Passive Mode (|||10598|)
+150 Here comes the directory listing.
+-rw-r--r--    1 0        0            3405 Dec 02  2019 dump.sql
+-rw-r--r--    1 0        0         5270987 Dec 03  2019 html.tar.gz
+226 Directory send OK.
+ftp> get dump.sql
+local: dump.sql remote: dump.sql
+229 Entering Extended Passive Mode (|||36183|)
+150 Opening BINARY mode data connection for dump.sql (3405 bytes).
+100% |*************************************************************************************************************************************************|  3405        1.78 MiB/s    00:00 ETA
+226 Transfer complete.
+3405 bytes received in 00:00 (55.98 KiB/s)
+ftp> get html.tar.gz
+local: html.tar.gz remote: html.tar.gz
+229 Entering Extended Passive Mode (|||16268|)
+150 Opening BINARY mode data connection for html.tar.gz (5270987 bytes).
+100% |*************************************************************************************************************************************************|  5147 KiB    1.94 MiB/s    00:00 ETA
+226 Transfer complete.
+5270987 bytes received in 00:02 (1.90 MiB/s)
+ftp> 
+
+```
 
 ## flag
 
