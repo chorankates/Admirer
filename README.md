@@ -359,6 +359,21 @@ so it's letting us log in, but then immediately killing the session. can't execu
 
 tried a variety of auths with users from contacts.txt and passwords from credentials.txt, but nothing sticking.
 
+looking back over the contents of [html.tar.gz](html.tar.gz), there is a difference in credentials.txt:
+```
+$ diff credentials.txt html/w4ld0s_s3cr3t_d1r/credentials.txt
+0a1,4
+> [Bank Account]
+> waldo.11
+> Ezy]m27}OREc$
+>
+
+but that is not the ssh password for `waldo` either..
+
+penny, leonard, howard and benadette are all characters on that god awful show "the big bang theory" - is waldo a reference there too?
+
+```
+
 
 
 
